@@ -54,6 +54,11 @@ public class CMDI2RDF {
                 try {
                     String content = new String(Files.readAllBytes(xmlPath));
                     
+                    if(content.length() > Configuration.FILE_SIZE_LIMIT) {
+                        log.info("file " + xmlPath + " skipped since its size eceeded the limit of " + Configuration.FILE_SIZE_LIMIT + " bytes");
+                        return;
+                    }
+                    
                     Matcher matcher = PROFILE_ID.matcher(content.substring(200));
                     
                     String profileID;
@@ -81,7 +86,7 @@ public class CMDI2RDF {
                         
                         rdfPath = rdfPath.resolve(xmlPath.getFileName().toString().replace(".xml", ".rdf"));
                         
-                        rdf.write(Files.newOutputStream(rdfPath, StandardOpenOption.CREATE), "text/turtle");
+                        rdf.write(Files.newOutputStream(rdfPath, StandardOpenOption.CREATE), Configuration.FORMAT_OUTPUT);
                     }
                     else {
                         log.info("no profile ID for file " + xmlPath);
@@ -115,12 +120,13 @@ public class CMDI2RDF {
         
         return X3ML_MAPPING.computeIfAbsent(profileID, k -> {
             
-            String profileURL = "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/clarin.eu:cr1:" + profileID + "/xsd";
-            
             X3ML x3ml;
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             try {
-                x3ml = new ProfileTransformer().transform(Configuration.FILE_MAPPING, profileURL, Arrays.asList("creator-actor","dataset"));
+                x3ml = new ProfileTransformer().transform(Configuration.FILE_MAPPING, 
+                        "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/clarin.eu:cr1:" + profileID + "/xsd", 
+                        Configuration.CONDITIONS.get(profileID)==null?Configuration.CONDITION_DEFAULT:Configuration.CONDITIONS.get(profileID)
+                    );
                 
                 new XMLIOService<X3ML>().marshal(x3ml, out); 
             }
