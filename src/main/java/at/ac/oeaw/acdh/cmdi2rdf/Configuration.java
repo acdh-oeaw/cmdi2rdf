@@ -25,6 +25,7 @@ public class Configuration {
     public static final String FILE_MAPPING;
     public static final Path FILE_POLICY;
     public static final int FILE_SIZE_LIMIT;
+    public static final int THREAD_POOL_SIZE;
     
     static {
         Properties properties = new Properties();
@@ -65,7 +66,7 @@ public class Configuration {
         FILE_MAPPING = properties.getProperty("FILE_MAPPING");
         FILE_POLICY = Paths.get(properties.getProperty("FILE_POLICY"));
         FILE_SIZE_LIMIT = Integer.valueOf(properties.getProperty("FILE_SIZE_LIMIT", "10000000"));
-        
+        THREAD_POOL_SIZE = Integer.valueOf(properties.getProperty("THREAD_POOL_SIZE", "20"));
     }
 
 }
