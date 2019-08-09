@@ -45,8 +45,10 @@ public class CMDI2RDF {
     public static void main(String[] args){
         
         try {
-            X3MLGeneratorPolicy policy = X3MLGeneratorPolicy.load(Files.newInputStream(Configuration.FILE_POLICY, StandardOpenOption.CREATE_NEW), X3MLGeneratorPolicy.createUUIDSource(-1));
-
+            
+            // loading policy one but X3MLGeneratorPolicy has to by loaded each time since it is probably NOT thread safe
+            byte[] policyArr = Files.readAllBytes(Configuration.FILE_POLICY);
+            
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = dbf.newDocumentBuilder();
             
@@ -88,7 +90,11 @@ public class CMDI2RDF {
                             
                             Document document = builder.parse(in);
                             
-                            X3MLEngine.Output rdf = engine.execute(document.getDocumentElement(), policy);
+                            
+                            X3MLEngine.Output rdf = engine.execute(
+                                    document.getDocumentElement(), 
+                                    X3MLGeneratorPolicy.load(new ByteArrayInputStream(policyArr), X3MLGeneratorPolicy.createUUIDSource(-1))
+                                );
                             
                             Path rdfPath = Configuration.DIR_RDF.resolve(xmlPath.getName(xmlPath.getNameCount() -2));
                             
