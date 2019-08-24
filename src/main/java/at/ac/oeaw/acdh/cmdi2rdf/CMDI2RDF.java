@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -80,7 +81,7 @@ public class CMDI2RDF {
                         
                             profileID = matcher.group(0);
                             
-                            content = content.replace("hdl:", "http://hdl.handle.net");
+                            content = content.replace("hdl:", "http://hdl.handle.net/");
                            
                             // creating engine with the profile specific mapping
                             X3MLEngine engine = X3MLEngine.load(new ByteArrayInputStream(getMapping(profileID)));
@@ -147,23 +148,40 @@ public class CMDI2RDF {
         // creates the profile specific mapping and stores it in the map, if it doesn't exist already
         return X3ML_MAPPING.computeIfAbsent(profileID, k -> {
             
-            X3ML x3ml;
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            Path mapping = Configuration.DIR_MAPPING.resolve(profileID + ".xml");
+            
             try {
-                x3ml = new ProfileTransformer().transform(Configuration.FILE_MAPPING, 
-                        "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/clarin.eu:cr1:" + profileID + "/xsd", 
-                        Configuration.CONDITIONS.get(profileID)==null?Configuration.CONDITION_DEFAULT:Configuration.CONDITIONS.get(profileID)
-                    );
-                
-                new XMLIOService<X3ML>().marshal(x3ml, out); 
+            
+                if(Files.exists(mapping)) {
+                    return Files.readAllBytes(mapping);
+                }
+                else {
+            
+                    X3ML x3ml;
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    
+                        x3ml = new ProfileTransformer().transform(Configuration.FILE_MAPPING, 
+                                "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/clarin.eu:cr1:" + profileID + "/xsd", 
+                                Configuration.CONDITIONS.get(profileID)==null?Configuration.CONDITION_DEFAULT:Configuration.CONDITIONS.get(profileID)
+                            );
+                        
+                        new XMLIOService<X3ML>().marshal(x3ml, out); 
+    
+                    
+                    Files.write(mapping, out.toByteArray(), StandardOpenOption.CREATE);
+                    
+                    return out.toByteArray();
+                }
             }
-            catch (VTDException|JAXBException ex) {
+
+            catch (VTDException|JAXBException | IOException ex) {
                 
                 log.error("can't create mapping file for profile " + profileID, ex);
             
+
             }
             
-            return out.toByteArray();
+            return new byte[0];
         });
     }
 }

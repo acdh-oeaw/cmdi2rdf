@@ -22,6 +22,7 @@ public class Configuration {
     public static final Map<String,List<String>> CONDITIONS;
     public static final Path DIR_CMDI;
     public static final Path DIR_RDF;
+    public static final Path DIR_MAPPING;
     public static final String FILE_MAPPING;
     public static final Path FILE_POLICY;
     public static final int FILE_SIZE_LIMIT;
@@ -63,6 +64,7 @@ public class Configuration {
         }
         DIR_CMDI = Paths.get(properties.getProperty("DIR_CMDI"));
         DIR_RDF = Paths.get(properties.getProperty("DIR_RDF"));
+        DIR_MAPPING = Paths.get(properties.getProperty("DIR_MAPPING", System.getProperty("java.io.tmpdir")));
         FILE_MAPPING = properties.getProperty("FILE_MAPPING");
         FILE_POLICY = Paths.get(properties.getProperty("FILE_POLICY"));
         FILE_SIZE_LIMIT = Integer.valueOf(properties.getProperty("FILE_SIZE_LIMIT", "10000000"));
