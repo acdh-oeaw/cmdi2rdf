@@ -3,8 +3,7 @@ package at.ac.oeaw.acdh.cmdi2rdf;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+
 
 import lombok.extern.log4j.Log4j;
 

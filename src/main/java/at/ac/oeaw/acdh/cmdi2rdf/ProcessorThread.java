@@ -4,19 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,15 +47,8 @@ public class ProcessorThread extends Thread {
     public void run() {
         
         try {
-            ClassLoader classLoader = new ClassLoader() {};
-            
-            Class<?> generatorPolicyClass = Class.forName("gr.forth.ics.isl.x3ml.X3MLGeneratorPolicy", true, classLoader);
-            
-            Method method = generatorPolicyClass.getDeclaredMethod("load", java.io.InputStream.class, gr.forth.ics.isl.x3ml.engine.Generator.UUIDSource.class);
-            
-            X3MLGeneratorPolicy generatorPolicy = (X3MLGeneratorPolicy) method.invoke(null, Files.newInputStream(Configuration.FILE_POLICY, StandardOpenOption.READ), X3MLGeneratorPolicy.createUUIDSource(-1));
 
-            //X3MLGeneratorPolicy generatorPolicy = X3MLGeneratorPolicy.load(Files.newInputStream(Configuration.FILE_POLICY, StandardOpenOption.READ), X3MLGeneratorPolicy.createUUIDSource(-1));
+            X3MLGeneratorPolicy generatorPolicy = X3MLGeneratorPolicy.load(Files.newInputStream(Configuration.FILE_POLICY, StandardOpenOption.READ), X3MLGeneratorPolicy.createUUIDSource(-1));
             
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = dbf.newDocumentBuilder();
@@ -89,20 +73,13 @@ public class ProcessorThread extends Thread {
                 profileID = matcher.group(0);
                 
                 content = content.replace("hdl:", "http://hdl.handle.net/");
-               
-                // creating engine with the profile specific mapping
-                Class<?> engineClass = Class.forName("gr.forth.ics.isl.x3ml.X3MLEngine", true, classLoader);
                 
-                method = engineClass.getDeclaredMethod("load", java.io.InputStream.class);
-                
-                X3MLEngine engine = (X3MLEngine) method.invoke(null, new ByteArrayInputStream(getMapping(profileID)));
-                
-                //X3MLEngine engine = X3MLEngine.load(new ByteArrayInputStream(getMapping(profileID)));
+                X3MLEngine engine = X3MLEngine.load(new ByteArrayInputStream(getMapping(profileID)));
                 
                 // back to a stream to parse by document builder
                 InputStream in = new ByteArrayInputStream(content.getBytes());
                 
-                Document document = builder.parse(in);
+                Document document = builder.parse(in);               
                 
                 String outputString = process(engine, document, generatorPolicy);
                 
@@ -114,6 +91,7 @@ public class ProcessorThread extends Thread {
                 
                 
                 rdfPath = rdfPath.resolve(xmlPath.getFileName().toString().replace(".xml", ".rdf"));
+
                 
                 Files.write(rdfPath, outputString.getBytes(), StandardOpenOption.CREATE);
 
@@ -136,31 +114,6 @@ public class ProcessorThread extends Thread {
             // TODO Auto-generated catch block
             ex.printStackTrace();
         }
-        catch (ClassNotFoundException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        }
-        catch (NoSuchMethodException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        }
-        catch (SecurityException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        }
-        catch (IllegalAccessException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        }
-        catch (IllegalArgumentException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        }
-        catch (InvocationTargetException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        }
-
     }
     
     /**
@@ -214,7 +167,6 @@ public class ProcessorThread extends Thread {
                 document.getDocumentElement(), 
                 generatorPolicy
             );
-        
 
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
