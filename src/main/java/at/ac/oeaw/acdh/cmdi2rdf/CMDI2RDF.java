@@ -53,80 +53,76 @@ public class CMDI2RDF {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = dbf.newDocumentBuilder();
             
-            ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Configuration.THREAD_POOL_SIZE);
             
             // walk recursively through all xml files in a given parent directory 
             Files.walk(Configuration.DIR_CMDI).filter(p -> p.toString().endsWith(".xml")).forEach(xmlPath -> { 
                 
                 // processing for each file is done in a thread
-                executor.submit(() -> {
+
                 
-                    try {
-                        // reading whole file content to a string since we have to perform a string replacement later
-                        String content = new String(Files.readAllBytes(xmlPath));
-                        
-                        // skipping files bigger than FILE_SIZE_LIMIT
-                        if(content.length() > Configuration.FILE_SIZE_LIMIT) {
-                            log.info("file " + xmlPath + " skipped since its size eceeded the limit of " + Configuration.FILE_SIZE_LIMIT + " bytes");
-                            return;
-                        }
-                        
-                        Matcher matcher = PROFILE_ID.matcher(content.substring(200));
-                        
-                        String profileID;
-                        
-                        // processed only if a profile ID can be determined from the first 200 bytes
-                        if(matcher.find()) {  
-    
-                        
-                            profileID = matcher.group(0);
-                            
-                            content = content.replace("hdl:", "http://hdl.handle.net/");
-                           
-                            // creating engine with the profile specific mapping
-                            X3MLEngine engine = X3MLEngine.load(new ByteArrayInputStream(getMapping(profileID)));
-                            
-                            // back to a stream to parse by document builder
-                            InputStream in = new ByteArrayInputStream(content.getBytes());
-                            
-                            Document document = builder.parse(in);
-                            
-                            
-                            X3MLEngine.Output rdf = engine.execute(
-                                    document.getDocumentElement(), 
-                                    X3MLGeneratorPolicy.load(new ByteArrayInputStream(policyArr), X3MLGeneratorPolicy.createUUIDSource(-1))
-                                );
-                            
-                            Path rdfPath = Configuration.DIR_RDF.resolve(xmlPath.getName(xmlPath.getNameCount() -2));
-                            
-                            synchronized(CMDI2RDF.class) {
-                                if(!Files.exists(rdfPath))
-                                    Files.createDirectory(rdfPath);
-                            }
-                            
-                            rdfPath = rdfPath.resolve(xmlPath.getFileName().toString().replace(".xml", ".rdf"));
-                            
-                            rdf.write(Files.newOutputStream(rdfPath, StandardOpenOption.CREATE), Configuration.FORMAT_OUTPUT);
-                        }
-                        else {
-                            log.info("no profile ID for file " + xmlPath);
-                        }
-                    }
-                    catch (IOException ex) {
-                        
-                        log.error("", ex);
+                try {
+                    // reading whole file content to a string since we have to perform a string replacement later
+                    String content = new String(Files.readAllBytes(xmlPath));
                     
-                    }
-                    catch (SAXException ex) {
-                        
-                        log.error("can't parse file " + xmlPath);
-                    
+                    // skipping files bigger than FILE_SIZE_LIMIT
+                    if(content.length() > Configuration.FILE_SIZE_LIMIT) {
+                        log.info("file " + xmlPath + " skipped since its size eceeded the limit of " + Configuration.FILE_SIZE_LIMIT + " bytes");
+                        return;
                     }
                     
-                });
+                    Matcher matcher = PROFILE_ID.matcher(content.substring(200));
+                    
+                    String profileID;
+                    
+                    // processed only if a profile ID can be determined from the first 200 bytes
+                    if(matcher.find()) {  
+
+                    
+                        profileID = matcher.group(0);
+                        
+                        content = content.replace("hdl:", "http://hdl.handle.net/");
+                       
+                        // creating engine with the profile specific mapping
+                        X3MLEngine engine = X3MLEngine.load(new ByteArrayInputStream(getMapping(profileID)));
+                        
+                        // back to a stream to parse by document builder
+                        InputStream in = new ByteArrayInputStream(content.getBytes());
+                        
+                        Document document = builder.parse(in);
+                        
+                        
+                        X3MLEngine.Output rdf = engine.execute(
+                                document.getDocumentElement(), 
+                                X3MLGeneratorPolicy.load(new ByteArrayInputStream(policyArr), X3MLGeneratorPolicy.createUUIDSource(-1))
+                            );
+                        
+                        Path rdfPath = Configuration.DIR_RDF.resolve(xmlPath.getName(xmlPath.getNameCount() -2));
+                        
+
+                        if(!Files.exists(rdfPath))
+                            Files.createDirectory(rdfPath);
+
+                        
+                        rdfPath = rdfPath.resolve(xmlPath.getFileName().toString().replace(".xml", ".rdf"));
+                        
+                        rdf.write(Files.newOutputStream(rdfPath, StandardOpenOption.CREATE), Configuration.FORMAT_OUTPUT);
+                    }
+                    else {
+                        log.info("no profile ID for file " + xmlPath);
+                    }
+                }
+                catch (IOException ex) {
+                    
+                    log.error("", ex);
+                
+                }
+                catch (SAXException ex) {
+                    
+                    log.error("can't parse file " + xmlPath);
+                
+                }
+
             });
-            
-            executor.shutdown();
         }
         catch (IOException ex) {
             
