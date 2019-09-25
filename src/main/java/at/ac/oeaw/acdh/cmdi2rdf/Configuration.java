@@ -20,7 +20,6 @@ public class Configuration {
     public static final String FORMAT_OUTPUT;
     public static final List<String> CONDITION_DEFAULT;
     public static final Map<String,List<String>> CONDITIONS;
-    public static final Path DIR_CMDI;
     public static final Path DIR_RDF;
     public static final Path DIR_MAPPING;
     public static final String FILE_MAPPING;
@@ -62,7 +61,6 @@ public class Configuration {
             }
             
         }
-        DIR_CMDI = Paths.get(properties.getProperty("DIR_CMDI"));
         DIR_RDF = Paths.get(properties.getProperty("DIR_RDF"));
         DIR_MAPPING = Paths.get(properties.getProperty("DIR_MAPPING", System.getProperty("java.io.tmpdir")));
         FILE_MAPPING = properties.getProperty("FILE_MAPPING");

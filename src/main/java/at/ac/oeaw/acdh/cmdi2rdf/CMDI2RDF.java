@@ -8,10 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,18 +41,29 @@ public class CMDI2RDF {
     
 
     public static void main(String[] args){
+        if(args.length == 0) {
+            log.fatal("missing input directory");
+            System.exit(1);
+        }
+        
+        Path inputDir = Paths.get(args[0]);
+        
+        if(!Files.exists(inputDir)) {
+            log.fatal("input directory " + inputDir + " doesn't exist");
+            System.exit(1);
+        }
+            
         
         try {
             
-            // loading policy one but X3MLGeneratorPolicy has to by loaded each time since it is probably NOT thread safe
-            byte[] policyArr = Files.readAllBytes(Configuration.FILE_POLICY);
+            X3MLGeneratorPolicy generatorPolicy = X3MLGeneratorPolicy.load(Files.newInputStream(Configuration.FILE_POLICY, StandardOpenOption.READ), X3MLGeneratorPolicy.createUUIDSource(-1));
             
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = dbf.newDocumentBuilder();
             
             
             // walk recursively through all xml files in a given parent directory 
-            Files.walk(Configuration.DIR_CMDI).filter(p -> p.toString().endsWith(".xml")).forEach(xmlPath -> { 
+            Files.walk(inputDir).filter(p -> p.toString().endsWith(".xml")).forEach(xmlPath -> { 
                 
                 // processing for each file is done in a thread
 
@@ -93,19 +101,28 @@ public class CMDI2RDF {
                         
                         X3MLEngine.Output rdf = engine.execute(
                                 document.getDocumentElement(), 
-                                X3MLGeneratorPolicy.load(new ByteArrayInputStream(policyArr), X3MLGeneratorPolicy.createUUIDSource(-1))
+                                generatorPolicy
                             );
                         
-                        Path rdfPath = Configuration.DIR_RDF.resolve(xmlPath.getName(xmlPath.getNameCount() -2));
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                         
-
+                        //rdf.write(Files.newOutputStream(rdfPath, StandardOpenOption.CREATE), Configuration.FORMAT_OUTPUT);  
+                        rdf.write(outputStream, Configuration.FORMAT_OUTPUT);
+                        
+                        Path collectionDir = xmlPath.getName(xmlPath.getNameCount() -2);
+                        
+                        String outputString = new String(outputStream.toByteArray()).replaceFirst("<http://default>","<https://parthenos.acdh-dev.oeaw.ac.at/source/" + collectionDir.toString() + ">");
+                        
+                        Path rdfPath = Configuration.DIR_RDF.resolve(collectionDir);
+                        
                         if(!Files.exists(rdfPath))
                             Files.createDirectory(rdfPath);
-
+                        
                         
                         rdfPath = rdfPath.resolve(xmlPath.getFileName().toString().replace(".xml", ".rdf"));
+
                         
-                        rdf.write(Files.newOutputStream(rdfPath, StandardOpenOption.CREATE), Configuration.FORMAT_OUTPUT);
+                        Files.write(rdfPath, outputString.getBytes(), StandardOpenOption.CREATE);
                     }
                     else {
                         log.info("no profile ID for file " + xmlPath);
