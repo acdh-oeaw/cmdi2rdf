@@ -18,6 +18,6 @@ The cmdi file and the specific mapping are passed to x3ml project to generate th
 As mentioned before this project depends an the two project pathenos_mapping and x3ml. Both projects are on github. They have to be downloaded and build first **before** building the cmdi2rdf project
 
 ## Running the project
-java -Dcmdi2rdf.properties=<path to you cmdi2rdf.properties> -jar cmdi2rdf-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+java -Dcmdi2rdf.properties=`<path to you cmdi2rdf.properties>` -jar cmdi2rdf-1.0-jar-with-dependencies.jar
 
 The program uses a property file cmdi2rdf.properties which is in the resources folder of the project. You have either to adapt the included property file to your needs before building the project or you can pass the pass the path to your property file as system parameter (-D) in the way shown above. **Since the parthenos_mapping project uses JAXB you must make sure to include the necessary packages if you run the program with JRE >= version 9**  

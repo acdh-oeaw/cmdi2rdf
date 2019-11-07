@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: gr.forth.ics.isl:x3ml-engine:1.9.4-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/gr/forth/ics/isl/x3ml-engine/1.9.4-SNAPSHOT/x3ml-engine-1.9.4-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/gr/forth/ics/isl/x3ml-engine/1.9.4-SNAPSHOT/x3ml-engine-1.9.4-SNAPSHOT-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/gr/forth/ics/isl/x3ml-engine/1.9.4-SNAPSHOT/x3ml-engine-1.9.4-SNAPSHOT-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
