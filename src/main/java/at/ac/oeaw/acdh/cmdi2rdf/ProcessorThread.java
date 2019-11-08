@@ -129,7 +129,7 @@ public class ProcessorThread extends Thread {
             
             try {
             
-                if(Files.exists(mapping)) {
+                if(Files.exists(mapping) && Configuration.USE_MAPPING_CACHE) {
                     return Files.readAllBytes(mapping);
                 }
                 else {
@@ -143,8 +143,7 @@ public class ProcessorThread extends Thread {
                             );
                         
                         new XMLIOService<X3ML>().marshal(x3ml, out); 
-    
-                    
+
                     Files.write(mapping, out.toByteArray(), StandardOpenOption.CREATE);
                     
                     return out.toByteArray();

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import lombok.extern.log4j.Log4j;
 
@@ -23,6 +24,7 @@ public class Configuration {
     public static final Path DIR_CMDI;
     public static final Path DIR_RDF;
     public static final Path DIR_MAPPING;
+    public static final boolean USE_MAPPING_CACHE;
     public static final String FILE_MAPPING;
     public static final Path FILE_POLICY;
     public static final int FILE_SIZE_LIMIT;
@@ -56,19 +58,23 @@ public class Configuration {
                     
                     for(String profileID : conditionset.split(":")[1].split(",")) {
                         CONDITIONS.put(profileID, condition);
+                        log.info("added key-value pair to map CONDITIONS, key: " + profileID + ", condition(s):" + condition.stream().collect(Collectors.joining(", ")));
                     }
-                    
+                }
+                else{
+                    throw new Error("wrong number of parameters in conditionset " + conditionset);
                 }
             }
-            
         }
+        log.info(CONDITIONS.size() + " key-value pairs in map CONDITIONS");
         DIR_CMDI = Paths.get(properties.getProperty("DIR_CMDI"));
         DIR_RDF = Paths.get(properties.getProperty("DIR_RDF"));
         DIR_MAPPING = Paths.get(properties.getProperty("DIR_MAPPING", System.getProperty("java.io.tmpdir")));
+        USE_MAPPING_CACHE = Boolean.getBoolean(properties.getProperty("USE_MAPPING_CACHE", "false"));
         FILE_MAPPING = properties.getProperty("FILE_MAPPING");
         FILE_POLICY = Paths.get(properties.getProperty("FILE_POLICY"));
-        FILE_SIZE_LIMIT = Integer.valueOf(properties.getProperty("FILE_SIZE_LIMIT", "10000000"));
-        THREAD_POOL_SIZE = Integer.valueOf(properties.getProperty("THREAD_POOL_SIZE", "20"));
+        FILE_SIZE_LIMIT = Integer.parseInt(properties.getProperty("FILE_SIZE_LIMIT", "10000000"));
+        THREAD_POOL_SIZE = Integer.parseInt(properties.getProperty("THREAD_POOL_SIZE", "20"));
     }
 
 }
