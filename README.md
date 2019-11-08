@@ -21,3 +21,45 @@ As mentioned before this project depends an the two project pathenos_mapping and
 java -Dcmdi2rdf.properties=`<path to your cmdi2rdf.properties>` -jar cmdi2rdf-1.0-jar-with-dependencies.jar
 
 The program uses a property file cmdi2rdf.properties which is in the resources folder of the project. You have either to adapt the included property file to your needs before building the project or you can pass the pass the path to your property file as system parameter (-D) in the way shown above. 
+
+## The cmdi2rdf.properties
+#### FORMAT_OUTPUT
+Currently only `application/rdf+xml` is supported
+
+#### DIR_CMDI
+Input directory for cmdi-files. The directory is scanned recursively for files with suffix .xml
+
+####  DIR_RDF
+Output directory for rdf files. Other output formats might be supported later
+
+#### DIR_MAPPING
+Direcory for profile specific mapping files. If `USE_MAPPING_CACHE` is set to true the content is used for processing. Otherwise profile specific mappings are generated with each start of the program
+
+#### USE_MAPPING_CACHE
+If set to true the program doesn't generate mappings but uses existing mappings from directory `DIR_MAPPING`
+
+#### FILE_MAPPING
+This is usually the path to the file `CMDI2CIDOC.xml`, which is a part of the pathenos_mapping project
+
+#### FILE_POLICY
+This is usually the path to the file `policy.xml`, which is a part of the pathenos_mapping project
+
+#### CONDITION_DEFAULT
+Comma separated list of conditions. These conditions are used as default if not defined otherwise in `CONDITIONS`
+
+#### CONDITIONS
+The property allows to define profile specific conditions. Each condition(s)-profile(s) set follows the pattern:
+
+`<condition1[,condition2,...]>:<profileID[,profileID,...]>`
+
+means we have one ore more comma separated list of conditions, a colon and a comma separated list of profileIDs. Multiple condition(s)-profile(s) sets use the semicolon as a separator. 
+
+Example:
+
+`CONDITIONS=creator-software,service:p_1295178776924,p_1299509410083;creator-software,actor:p_1295178776925,p_1299509410084`
+
+#### FILE_SIZE_LIMIT
+Maximum file size in bytes of the CMDI input file. 
+
+#### THREAD_POOL_SIZE
+Processing of CDMI files is done in a multi-threaded way. The number of threads depends on the hardware configuration  
